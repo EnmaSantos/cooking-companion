@@ -1,0 +1,12 @@
+.env
+.venv/
+CookingCompanion/
+CookingCompanion.xcodeproj/
+CookingCompanionTests/
+CookingCompanionUITests/
+Config/
+docs/
+.github/
+DerivedData/
+backend/test_main.py
+project.yml

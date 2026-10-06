@@ -11,6 +11,6 @@
 <key>CFBundleShortVersionString</key><string>1.0</string>
 <key>CFBundleVersion</key><string>1</string>
 <key>LSRequiresIPhoneOS</key><true/>
-<key>NSLocalNetworkUsageDescription</key><string>Connect to your Mac to search USDA foods.</string>
+<key>NSLocalNetworkUsageDescription</key><string>Connect to your Mac to search recipes and USDA foods during local development.</string>
 <key>UILaunchScreen</key><dict/>
 </dict></plist>

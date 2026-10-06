@@ -1,6 +1,6 @@
 # Cooking Companion
 
-Cooking Companion is a native iPhone app for the full kitchen loop: find a recipe, check what is on hand, shop for what is missing, cook, confirm what was used, and see the updated pantry. It uses **TheMealDB** for recipe discovery and **USDA FoodData Central** for optional food and nutrition details. Recipes, quantities, shopping items, and cooking history belong to the app and persist locally with SwiftData.
+Cooking Companion is a native iPhone app for the full kitchen loop: find a recipe, check what is on hand, shop for what is missing, cook, confirm what was used, and see the updated pantry. It uses **TheMealDB** for recipe discovery and **USDA FoodData Central** for optional food and nutrition details through a small shared FastAPI service. Recipes, quantities, shopping items, and cooking history belong to the app and persist locally with SwiftData.
 
 | My Recipes | Guided cooking | Pantry and history |
 | --- | --- | --- |
@@ -20,22 +20,22 @@ These are captures from the iPhone 18 Pro simulator using the included sample ki
 - **Shop and replenish.** Add known recipe shortages, low-stock suggestions, or manual items. Compatible shortages merge without multiplying when generated again. Confirm the purchased quantity to add it to the pantry, or open Google and Walmart searches from the item detail.
 - **Optionally enrich ingredients.** Search USDA foods, confirm a match, and cache the food ID and nutrient values with their units and measurement basis. Food matching is separate from the app's own ingredient identity.
 
-Saved recipes, pantry, shopping, and cooking continue to work when the internet or Mac service is unavailable. New TheMealDB discovery needs internet access; new USDA searches need the Mac service.
+Saved recipes, pantry, shopping, and cooking continue to work when the internet or catalog service is unavailable. New recipe discovery and USDA searches need the service.
 
-## Where the API keys go
+## API keys and shared service
 
-The two keys have different homes. **Do not put either key in `project.yml`, Swift source, screenshots, or GitHub.**
+The iPhone talks to one HTTPS service at `https://cooking-companion-api-enmanuels-projects-5c99349f.vercel.app`. That service calls TheMealDB V2 and USDA. **Both provider keys stay in the service environment, never in Swift source, the app's Settings, screenshots, or GitHub.** New installations use the hosted service URL by default.
 
-| Provider | Where to put your key | Used for |
+| Environment | Where the two keys go | Used for |
 | --- | --- | --- |
-| TheMealDB | In the app: **Settings → TheMealDB V2 API key → Save TheMealDB key**. Paste the key alone, not the full URL. | Recipe discovery on this iPhone. The key is stored in this device's Keychain. The app changes its requests from `/api/json/v1/1/…` to `/api/json/v2/<your-key>/…`. |
-| USDA FoodData Central | In a local `.env` file at the repository root as `FOODDATA_API_KEY=...`. | The Mac FastAPI service adds the key when calling USDA. The iPhone receives food data, never the USDA key. |
+| Local development | In the ignored `.env` file at the repository root: `FOODDATA_API_KEY=...` and `THEMEALDB_API_KEY=...`. | FastAPI loads these when it starts on your Mac. |
+| Hosted service | In the hosting project's **Secret environment variables**, using the same two names. | The host supplies them to FastAPI; update them in the hosting dashboard and redeploy. |
 
-TheMealDB's [API instructions](https://www.themealdb.com/api.php) show the V2 URL format and endpoint names. Without a saved TheMealDB key, the app uses the V1 development key for this personal build. USDA's [API guide](https://fdc.nal.usda.gov/api-guide/) explains why its key should stay private.
+TheMealDB's [API instructions](https://www.themealdb.com/api.php) show the V2 URL format. USDA's [API guide](https://fdc.nal.usda.gov/api-guide/) requires protecting its key. Paste each **key alone**, not a full provider URL. A missing key makes only that provider's new searches unavailable; saved local data still works.
 
-<img src="docs/screenshots/settings.png" width="250" alt="Settings screen with a TheMealDB key field and Mac server address" />
+<img src="docs/screenshots/settings.png" width="250" alt="Settings screen with one catalog service URL" />
 
-To set up USDA on your Mac, open Terminal in this repository's folder and run **one command at a time**. First create the Python environment:
+For local development, open Terminal in this repository's folder and run **one command at a time**. First create the Python environment:
 
 ```sh
 python3 -m venv .venv
@@ -47,19 +47,27 @@ Then install the backend packages into it:
 .venv/bin/python -m pip install -r backend/requirements.txt
 ```
 
-Copy the key template:
+Copy the key template if `.env` does not already exist:
 
 ```sh
-cp .env.example .env
+cp -n .env.example .env
 ```
 
-Open `.env` in an editor and replace `replace_with_your_usda_key` with your USDA key. The line in that **file** should read `FOODDATA_API_KEY=your_actual_key`. This is file content, not a Terminal command or an argument to `venv`. Start the server with:
+Open `.env` in an editor and replace the placeholders with your two keys. If you already created `.env`, add `THEMEALDB_API_KEY=your_actual_key` on a new line. These are lines **inside the file**, not Terminal commands or arguments to `venv`. Start the service with:
 
 ```sh
-.venv/bin/uvicorn main:app --app-dir backend --host 0.0.0.0 --port 8000
+.venv/bin/uvicorn app:app --host 0.0.0.0 --port 8000
 ```
 
-`.env` is ignored by Git. The server loads it when it starts, so restart the server after changing the USDA key. In the iPhone Simulator, leave **Settings → Mac server URL** at `http://127.0.0.1:8000`. On a physical iPhone, enter your Mac's local Wi-Fi address, such as `http://192.168.1.20:8000`, and keep the phone and Mac on the same network. The local HTTP allowance is in the Debug configuration for personal device testing.
+`.env` is ignored by Git. Restart the local service after changing either key. To use the local service in Simulator, change **Settings → API service URL** to `http://127.0.0.1:8000`. For local testing on a physical iPhone, enter your Mac's Wi-Fi address, such as `http://192.168.1.20:8000`, while the phone and Mac share a network. The local HTTP allowance exists only in the Debug app configuration.
+
+### Hosting on Vercel
+
+The repository includes a root FastAPI entrypoint and requirements file for [Vercel's FastAPI runtime](https://vercel.com/docs/frameworks/backend/fastapi). The Vercel project is `cooking-companion-api`, linked to this repository at the repository root. Add `FOODDATA_API_KEY` and `THEMEALDB_API_KEY` as **Secret** variables for Production in **Project Settings → Environment Variables**. Deploy, then check the hosted `/health` endpoint: it returns HTTP 200 only when both keys are configured. New installations already use the production base URL; existing devices can set it in **Settings → API service URL**. Update either key in Vercel's environment settings and redeploy; old deployments do not receive changed values. [Vercel environment-variable guide](https://vercel.com/docs/environment-variables/)
+
+The service exposes `GET /recipes/search?q=…`, `/recipes/categories`, `/recipes/filter?category=…` or `?ingredient=…`, `/recipes/{mealId}`, `/foods/search?q=…&page=…`, and `/foods/{fdcId}`. It has no endpoint that accepts arbitrary provider URLs or returns credentials.
+
+The public endpoints are deliberately limited to recipe search, categories, one-filter search, recipe details, USDA food search, and USDA food details. Successful catalog responses have a one-hour CDN cache header. Before opening the service to a broad audience, configure a [host-level rate limit](https://vercel.com/docs/vercel-firewall/vercel-waf/custom-rules); USDA's [default limit is 1,000 requests per hour per IP](https://fdc.nal.usda.gov/api-guide/). App data remains on each device; this service does not provide accounts or sync.
 
 ## Run the app
 
@@ -72,7 +80,7 @@ The generated Xcode project is committed. `project.yml` is its [XcodeGen](https:
 
 ## Architecture and tests
 
-TheMealDB responses map into local `Recipe` records. USDA responses pass through the small FastAPI service and enrich local `Ingredient` records after confirmation. SwiftData owns inventory transactions, shopping, and resumable cooking sessions. See the [architecture](docs/architecture.md) and [UX decisions](docs/design.md) for the data model and interaction choices.
+TheMealDB and USDA responses pass through the shared FastAPI service, then map into local `Recipe` and `Ingredient` records. SwiftData owns inventory transactions, shopping, and resumable cooking sessions. See the [architecture](docs/architecture.md) and [UX decisions](docs/design.md) for the data model and interaction choices.
 
 ```sh
 DEVELOPER_DIR=/Applications/Xcode.app/Contents/Developer xcodebuild -project CookingCompanion.xcodeproj -scheme CookingCompanion -destination 'platform=iOS Simulator,name=iPhone 17' CODE_SIGNING_ALLOWED=NO test

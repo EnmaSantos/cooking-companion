@@ -347,7 +347,7 @@ struct FoodSearchView: View {
     let ingredient: Ingredient
     @Environment(\.dismiss) private var dismiss
     @Environment(\.modelContext) private var context
-    @AppStorage("usdaBaseURL") private var baseURL = "http://127.0.0.1:8000"
+    @AppStorage("serviceBaseURL") private var baseURL = CatalogEndpoint.defaultBaseURL
     @State private var query = ""
     @State private var results: [USDAFoodDTO] = []
     @State private var error: String?
