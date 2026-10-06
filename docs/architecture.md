@@ -15,7 +15,9 @@ The cooking session captures ingredients, steps, and manually linked step ingred
 
 Shopping generation tracks each recipe line or low-stock suggestion by a source key. Repeated generation is idempotent, compatible known amounts merge, and unknown amounts remain visible for review. Recording a purchase clears its source contributions so future shortages can generate new items.
 
-The FastAPI server accepts only food search and details, adds the USDA key server-side, limits query size, times out, maps upstream failures to safe error messages, and caches at most 128 successful results for one hour. The iPhone can operate without the server except for new USDA searches. The app's local address is configured in Settings for Simulator or phone use.
+The FastAPI server accepts only food search and details, loads the USDA key from a local environment variable or ignored `.env` file, adds it server-side, limits query size, times out, maps upstream failures to safe error messages, and caches at most 128 successful results for one hour. The iPhone can operate without the server except for new USDA searches. The app's local address is configured in Settings for Simulator or phone use.
+
+TheMealDB discovery uses its V1 development endpoint until a personal V2 key is saved in the iPhone Keychain through Settings. The network layer then uses `/api/json/v2/<key>/` for name search, category browsing, ingredient filtering, and details. The key stays out of the repository and Xcode project.
 
 ## Portfolio demonstration
 

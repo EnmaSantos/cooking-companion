@@ -7,6 +7,7 @@
 	objects = {
 
 /* Begin PBXBuildFile section */
+		0E031C9DD9F4B9620AC9EA30 /* TheMealDBKeyStore.swift in Sources */ = {isa = PBXBuildFile; fileRef = 76D854BF010400493294BE89 /* TheMealDBKeyStore.swift */; };
 		22263B169590A77EAB63A223 /* CookingCompanionUITests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 596F9D1C255F4EA66A1F4338 /* CookingCompanionUITests.swift */; };
 		29FB3EFFF4B86DD1360E31E1 /* SettingsView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 6155A2D34E93D952B2FD6083 /* SettingsView.swift */; };
 		38ABEB5CB041E01FDB53BADD /* Providers.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0A0E520A6836159D76D2D09A /* Providers.swift */; };
@@ -45,6 +46,7 @@
 		596F9D1C255F4EA66A1F4338 /* CookingCompanionUITests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CookingCompanionUITests.swift; sourceTree = "<group>"; };
 		6155A2D34E93D952B2FD6083 /* SettingsView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SettingsView.swift; sourceTree = "<group>"; };
 		65325333C8218BA9A0B9E6B3 /* Models.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Models.swift; sourceTree = "<group>"; };
+		76D854BF010400493294BE89 /* TheMealDBKeyStore.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TheMealDBKeyStore.swift; sourceTree = "<group>"; };
 		8D4EAAE57CBB2E8ACE46C659 /* RecipesViews.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = RecipesViews.swift; sourceTree = "<group>"; };
 		8E87CA00D9E6F245F05BB535 /* CookingCompanionUITests.xctest */ = {isa = PBXFileReference; includeInIndex = 0; lastKnownFileType = wrapper.cfbundle; path = CookingCompanionUITests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
 		9658B5E9A835EB00DB490A29 /* PantryViews.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PantryViews.swift; sourceTree = "<group>"; };
@@ -69,6 +71,7 @@
 			isa = PBXGroup;
 			children = (
 				0A0E520A6836159D76D2D09A /* Providers.swift */,
+				76D854BF010400493294BE89 /* TheMealDBKeyStore.swift */,
 			);
 			path = Networking;
 			sourceTree = "<group>";
@@ -268,6 +271,7 @@
 				38ABEB5CB041E01FDB53BADD /* Providers.swift in Sources */,
 				515FC4DD314E8303312F5A12 /* RecipesViews.swift in Sources */,
 				29FB3EFFF4B86DD1360E31E1 /* SettingsView.swift in Sources */,
+				0E031C9DD9F4B9620AC9EA30 /* TheMealDBKeyStore.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};

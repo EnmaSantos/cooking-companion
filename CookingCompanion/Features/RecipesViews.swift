@@ -100,7 +100,7 @@ struct DiscoverView: View {
     @State private var results: [MealDTO] = []
     @State private var loading = false
     @State private var error: String?
-    private let service = TheMealDBService()
+    private var service: TheMealDBService { TheMealDBService() }
     var body: some View {
         List {
             Section {

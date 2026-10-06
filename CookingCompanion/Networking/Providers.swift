@@ -5,7 +5,7 @@ enum NetworkIssue: LocalizedError {
     case invalidURL, offline, badResponse(Int), badData
     var errorDescription: String? {
         switch self {
-        case .invalidURL: return "Check the Mac server address in Settings."
+        case .invalidURL: return "Check the service address or API key in Settings."
         case .offline: return "The service is unavailable. Your saved data still works offline."
         case .badResponse(let code): return code == 429 ? "The service is busy. Please retry shortly." : "The service returned an error (\(code))."
         case .badData: return "The service returned data this version cannot read."
@@ -75,12 +75,25 @@ protocol RecipeDiscoveryService {
 }
 
 struct TheMealDBService: RecipeDiscoveryService {
-    private let root = "https://www.themealdb.com/api/json/v1/1/"
-    private func get(_ endpoint: String, query: [URLQueryItem]) async throws -> Data {
-        guard var parts = URLComponents(string: root + endpoint) else { throw NetworkIssue.invalidURL }
+    private let apiKey: String?
+
+    init(apiKey: String? = TheMealDBKeyStore.read()) {
+        self.apiKey = apiKey?.trimmingCharacters(in: .whitespacesAndNewlines)
+    }
+
+    func url(for endpoint: String, query: [URLQueryItem] = []) throws -> URL {
+        let key = apiKey?.isEmpty == false ? apiKey! : "1"
+        let version = apiKey?.isEmpty == false ? "v2" : "v1"
+        guard TheMealDBKeyStore.isValid(key),
+              var parts = URLComponents(string: "https://www.themealdb.com/api/json/\(version)/\(key)/\(endpoint)")
+        else { throw NetworkIssue.invalidURL }
         parts.queryItems = query
         guard let url = parts.url else { throw NetworkIssue.invalidURL }
-        return try await load(url)
+        return url
+    }
+
+    private func get(_ endpoint: String, query: [URLQueryItem]) async throws -> Data {
+        try await load(url(for: endpoint, query: query))
     }
     func search(_ query: String) async throws -> [MealDTO] {
         let data = try await get("search.php", query: [.init(name: "s", value: query)])

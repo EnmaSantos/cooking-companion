@@ -3,6 +3,15 @@ import SwiftData
 @testable import CookingCompanion
 
 final class CookingCompanionTests: XCTestCase {
+    func testTheMealDBUsesV2WhenAKeyIsConfigured() throws {
+        let v1 = try TheMealDBService(apiKey: nil).url(for: "search.php", query: [.init(name: "s", value: "chicken alfredo")])
+        let v2 = try TheMealDBService(apiKey: "exampleKey").url(for: "lookup.php", query: [.init(name: "i", value: "52772")])
+        XCTAssertEqual(v1.path, "/api/json/v1/1/search.php")
+        XCTAssertEqual(URLComponents(url: v1, resolvingAgainstBaseURL: false)?.queryItems?.first?.value, "chicken alfredo")
+        XCTAssertEqual(v2.path, "/api/json/v2/exampleKey/lookup.php")
+        XCTAssertThrowsError(try TheMealDBService(apiKey: "bad/key").url(for: "latest.php"))
+    }
+
     func testQuantityParsingPreservesUncertainMeasures() {
         XCTAssertEqual(Quantity.parse("1 1/2 cups").0, 1.5)
         XCTAssertEqual(Quantity.parse("¼ cup").1, "cup")

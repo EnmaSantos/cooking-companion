@@ -5,10 +5,14 @@ from __future__ import annotations
 import os
 import time
 from collections import OrderedDict
+from pathlib import Path
 from typing import Any
 
 import httpx
+from dotenv import load_dotenv
 from fastapi import FastAPI, HTTPException, Query
+
+load_dotenv(Path(__file__).resolve().parent.parent / ".env")
 
 API_ROOT = "https://api.nal.usda.gov/fdc/v1"
 CACHE_SIZE = 128

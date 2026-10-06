@@ -7,9 +7,33 @@ struct SettingsView: View {
     @Query private var ingredients: [Ingredient]
     @Query private var pantry: [PantryItem]
     @AppStorage("usdaBaseURL") private var baseURL = "http://127.0.0.1:8000"
+    @State private var mealDBKey = ""
+    @State private var keyMessage: String?
     @State private var message: String?
     var body: some View {
         Form {
+            Section("TheMealDB discovery") {
+                SecureField("TheMealDB V2 API key", text: $mealDBKey)
+                    .textInputAutocapitalization(.never)
+                    .autocorrectionDisabled()
+                Button("Save TheMealDB key") {
+                    if !TheMealDBKeyStore.isValid(mealDBKey.trimmingCharacters(in: .whitespacesAndNewlines)) {
+                        keyMessage = "Enter only the API key, using letters, numbers, hyphens, or underscores."
+                    } else {
+                        keyMessage = TheMealDBKeyStore.save(mealDBKey)
+                            ? "Saved on this iPhone. Discovery now uses TheMealDB V2."
+                            : "Could not save the key. Try again."
+                    }
+                }
+                if TheMealDBKeyStore.read() != nil {
+                    Button("Remove key", role: .destructive) {
+                        if TheMealDBKeyStore.remove() { mealDBKey = ""; keyMessage = "Key removed. Discovery uses the V1 development API." }
+                    }
+                }
+                Text("Paste only the key, not the full URL. Without a saved key, Discover uses the V1 development API.")
+                    .font(.caption).foregroundStyle(.secondary)
+                if let keyMessage { Text(keyMessage).font(.caption).foregroundStyle(.secondary) }
+            }
             Section("USDA connection") {
                 TextField("Mac server URL", text: $baseURL)
                     .textInputAutocapitalization(.never).keyboardType(.URL)
@@ -28,6 +52,7 @@ struct SettingsView: View {
             }
         }
         .navigationTitle("Settings")
+        .onAppear { mealDBKey = TheMealDBKeyStore.read() ?? "" }
     }
     private func loadDemo() {
         guard !recipes.contains(where: { $0.sourceID == "sample-pancakes" }) else { message = "Sample kitchen is already loaded."; return }
