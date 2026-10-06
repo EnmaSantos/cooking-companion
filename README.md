@@ -35,13 +35,27 @@ TheMealDB's [API instructions](https://www.themealdb.com/api.php) show the V2 UR
 
 <img src="docs/screenshots/settings.png" width="250" alt="Settings screen with a TheMealDB key field and Mac server address" />
 
-To set up USDA on your Mac:
+To set up USDA on your Mac, open Terminal in this repository's folder and run **one command at a time**. First create the Python environment:
+
+```sh
+python3 -m venv .venv
+```
+
+Then install the backend packages into it:
+
+```sh
+.venv/bin/python -m pip install -r backend/requirements.txt
+```
+
+Copy the key template:
 
 ```sh
 cp .env.example .env
-# Open .env in your editor and replace the placeholder with your USDA key.
-python3 -m venv .venv
-.venv/bin/python -m pip install -r backend/requirements.txt
+```
+
+Open `.env` in an editor and replace `replace_with_your_usda_key` with your USDA key. The line in that **file** should read `FOODDATA_API_KEY=your_actual_key`. This is file content, not a Terminal command or an argument to `venv`. Start the server with:
+
+```sh
 .venv/bin/uvicorn main:app --app-dir backend --host 0.0.0.0 --port 8000
 ```
 
