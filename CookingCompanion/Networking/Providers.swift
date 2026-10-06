@@ -5,11 +5,23 @@ enum NetworkIssue: LocalizedError {
     case invalidURL, offline, badResponse(Int), badData
     var errorDescription: String? {
         switch self {
-        case .invalidURL: return "Check the service address or API key in Settings."
+        case .invalidURL: return "Check the API service address in Settings."
         case .offline: return "The service is unavailable. Your saved data still works offline."
         case .badResponse(let code): return code == 429 ? "The service is busy. Please retry shortly." : "The service returned an error (\(code))."
         case .badData: return "The service returned data this version cannot read."
         }
+    }
+}
+
+enum CatalogEndpoint {
+    static func url(base: String, path: String, query: [URLQueryItem] = []) throws -> URL {
+        guard let root = URL(string: base), root.scheme == "http" || root.scheme == "https",
+              let host = root.host, !host.isEmpty,
+              var parts = URLComponents(url: root.appendingPathComponent(path), resolvingAgainstBaseURL: false)
+        else { throw NetworkIssue.invalidURL }
+        parts.queryItems = query
+        guard let url = parts.url else { throw NetworkIssue.invalidURL }
+        return url
     }
 }
 
@@ -75,40 +87,29 @@ protocol RecipeDiscoveryService {
 }
 
 struct TheMealDBService: RecipeDiscoveryService {
-    private let apiKey: String?
-
-    init(apiKey: String? = TheMealDBKeyStore.read()) {
-        self.apiKey = apiKey?.trimmingCharacters(in: .whitespacesAndNewlines)
-    }
+    let baseURL: String
 
     func url(for endpoint: String, query: [URLQueryItem] = []) throws -> URL {
-        let key = apiKey?.isEmpty == false ? apiKey! : "1"
-        let version = apiKey?.isEmpty == false ? "v2" : "v1"
-        guard TheMealDBKeyStore.isValid(key),
-              var parts = URLComponents(string: "https://www.themealdb.com/api/json/\(version)/\(key)/\(endpoint)")
-        else { throw NetworkIssue.invalidURL }
-        parts.queryItems = query
-        guard let url = parts.url else { throw NetworkIssue.invalidURL }
-        return url
+        try CatalogEndpoint.url(base: baseURL, path: endpoint, query: query)
     }
 
     private func get(_ endpoint: String, query: [URLQueryItem]) async throws -> Data {
         try await load(url(for: endpoint, query: query))
     }
     func search(_ query: String) async throws -> [MealDTO] {
-        let data = try await get("search.php", query: [.init(name: "s", value: query)])
+        let data = try await get("recipes/search", query: [.init(name: "q", value: query)])
         return try JSONDecoder().decode(MealEnvelope.self, from: data).meals ?? []
     }
     func categories() async throws -> [MealCategory] {
-        try JSONDecoder().decode(CategoryEnvelope.self, from: await get("categories.php", query: [])).categories
+        try JSONDecoder().decode(CategoryEnvelope.self, from: await get("recipes/categories", query: [])).categories
     }
     func filter(category: String? = nil, ingredient: String? = nil) async throws -> [MealDTO] {
-        let parameter = category.map { URLQueryItem(name: "c", value: $0) } ?? URLQueryItem(name: "i", value: ingredient)
-        let data = try await get("filter.php", query: [parameter])
+        let parameter = category.map { URLQueryItem(name: "category", value: $0) } ?? URLQueryItem(name: "ingredient", value: ingredient)
+        let data = try await get("recipes/filter", query: [parameter])
         return try JSONDecoder().decode(MealEnvelope.self, from: data).meals ?? []
     }
     func details(id: String) async throws -> MealDTO {
-        let data = try await get("lookup.php", query: [.init(name: "i", value: id)])
+        let data = try await get("recipes/\(id)", query: [])
         guard let meal = try JSONDecoder().decode(MealEnvelope.self, from: data).meals?.first else { throw NetworkIssue.badData }
         return meal
     }
@@ -176,21 +177,13 @@ protocol FoodCatalogService {
     func details(id: Int, baseURL: String) async throws -> USDAFoodDTO
 }
 struct USDAProxyService: FoodCatalogService {
-    private func endpoint(_ base: String, _ path: String, query: [URLQueryItem] = []) throws -> URL {
-        guard let root = URL(string: base), root.scheme == "http" || root.scheme == "https",
-              let host = root.host, !host.isEmpty,
-              var parts = URLComponents(url: root.appendingPathComponent(path), resolvingAgainstBaseURL: false) else { throw NetworkIssue.invalidURL }
-        parts.queryItems = query
-        guard let url = parts.url else { throw NetworkIssue.invalidURL }
-        return url
-    }
     func search(_ query: String, page: Int, baseURL: String) async throws -> [USDAFoodDTO] {
-        let url = try endpoint(baseURL, "foods/search", query: [.init(name: "q", value: query), .init(name: "page", value: String(page))])
+        let url = try CatalogEndpoint.url(base: baseURL, path: "foods/search", query: [.init(name: "q", value: query), .init(name: "page", value: String(page))])
         let data = try await load(url)
         return try JSONDecoder().decode(USDASearchEnvelope.self, from: data).foods ?? []
     }
     func details(id: Int, baseURL: String) async throws -> USDAFoodDTO {
-        let data = try await load(endpoint(baseURL, "foods/\(id)"))
+        let data = try await load(CatalogEndpoint.url(base: baseURL, path: "foods/\(id)"))
         return try JSONDecoder().decode(USDAFoodDTO.self, from: data)
     }
 }

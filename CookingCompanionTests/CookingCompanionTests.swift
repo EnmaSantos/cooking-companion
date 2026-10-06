@@ -3,13 +3,14 @@ import SwiftData
 @testable import CookingCompanion
 
 final class CookingCompanionTests: XCTestCase {
-    func testTheMealDBUsesV2WhenAKeyIsConfigured() throws {
-        let v1 = try TheMealDBService(apiKey: nil).url(for: "search.php", query: [.init(name: "s", value: "chicken alfredo")])
-        let v2 = try TheMealDBService(apiKey: "exampleKey").url(for: "lookup.php", query: [.init(name: "i", value: "52772")])
-        XCTAssertEqual(v1.path, "/api/json/v1/1/search.php")
-        XCTAssertEqual(URLComponents(url: v1, resolvingAgainstBaseURL: false)?.queryItems?.first?.value, "chicken alfredo")
-        XCTAssertEqual(v2.path, "/api/json/v2/exampleKey/lookup.php")
-        XCTAssertThrowsError(try TheMealDBService(apiKey: "bad/key").url(for: "latest.php"))
+    func testCatalogUsesConfiguredServiceWithoutProviderKeys() throws {
+        let service = TheMealDBService(baseURL: "https://catalog.example.test")
+        let search = try service.url(for: "recipes/search", query: [.init(name: "q", value: "chicken alfredo")])
+        let details = try service.url(for: "recipes/52772")
+        XCTAssertEqual(search.path, "/recipes/search")
+        XCTAssertEqual(URLComponents(url: search, resolvingAgainstBaseURL: false)?.queryItems?.first?.value, "chicken alfredo")
+        XCTAssertEqual(details.path, "/recipes/52772")
+        XCTAssertThrowsError(try TheMealDBService(baseURL: "not a URL").url(for: "recipes/search"))
     }
 
     func testQuantityParsingPreservesUncertainMeasures() {

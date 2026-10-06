@@ -8,7 +8,7 @@ on:
 
 jobs:
   backend:
-    name: USDA proxy tests
+    name: Catalog API tests
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4

@@ -1,8 +1,8 @@
 # Architecture
 
 ```text
-TheMealDB JSON → MealDTO → RecipeMapper → SwiftData Recipe
-USDA JSON → FastAPI proxy → USDAFoodDTO → FoodMapper → Ingredient metadata
+TheMealDB JSON → hosted FastAPI → MealDTO → RecipeMapper → SwiftData Recipe
+USDA JSON → hosted FastAPI → USDAFoodDTO → FoodMapper → Ingredient metadata
 Recipe + pantry → Readiness → Shopping
 Recipe → CookingSession snapshot → Usage review → InventoryTransaction → Pantry
 ```
@@ -15,9 +15,7 @@ The cooking session captures ingredients, steps, and manually linked step ingred
 
 Shopping generation tracks each recipe line or low-stock suggestion by a source key. Repeated generation is idempotent, compatible known amounts merge, and unknown amounts remain visible for review. Recording a purchase clears its source contributions so future shortages can generate new items.
 
-The FastAPI server accepts only food search and details, loads the USDA key from a local environment variable or ignored `.env` file, adds it server-side, limits query size, times out, maps upstream failures to safe error messages, and caches at most 128 successful results for one hour. The iPhone can operate without the server except for new USDA searches. The app's local address is configured in Settings for Simulator or phone use.
-
-TheMealDB discovery uses its V1 development endpoint until a personal V2 key is saved in the iPhone Keychain through Settings. The network layer then uses `/api/json/v2/<key>/` for name search, category browsing, ingredient filtering, and details. The key stays out of the repository and Xcode project.
+The FastAPI service accepts only bounded recipe discovery and food catalog requests. It loads the two provider keys from ignored `.env` values locally or hosting environment secrets in production, adds them server-side, times out, maps upstream failures to safe error messages, and caches at most 128 successful results for one hour in each process. Successful catalog responses also carry a one-hour CDN cache directive. The app's service URL is configured in Settings; provider keys are absent from the app and repository. New catalog requests need the service, while saved recipes, pantry, shopping, and cooking remain local and usable offline. A hosted public instance needs host-level rate limiting before broad use because an in-process cache is not a cross-instance abuse control.
 
 ## Portfolio demonstration
 

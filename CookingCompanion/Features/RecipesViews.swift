@@ -92,6 +92,7 @@ struct RecipesView: View {
 }
 
 struct DiscoverView: View {
+    @AppStorage("serviceBaseURL") private var baseURL = "http://127.0.0.1:8000"
     @State private var mode = 0
     @State private var query = ""
     @State private var ingredient = ""
@@ -100,7 +101,7 @@ struct DiscoverView: View {
     @State private var results: [MealDTO] = []
     @State private var loading = false
     @State private var error: String?
-    private var service: TheMealDBService { TheMealDBService() }
+    private var service: TheMealDBService { TheMealDBService(baseURL: baseURL) }
     var body: some View {
         List {
             Section {
@@ -132,7 +133,6 @@ struct DiscoverView: View {
             }
         }
         .task {
-            guard categories.isEmpty else { return }
             categories = (try? await service.categories()) ?? []
         }
     }
@@ -153,6 +153,7 @@ struct DiscoverView: View {
 
 struct DiscoveredRecipeView: View {
     let mealID: String
+    @AppStorage("serviceBaseURL") private var baseURL = "http://127.0.0.1:8000"
     @Environment(\.modelContext) private var context
     @Query private var savedRecipes: [Recipe]
     @State private var meal: MealDTO?
@@ -189,7 +190,7 @@ struct DiscoveredRecipeView: View {
     }
     private func fetch() async {
         loading = true; error = nil
-        do { meal = try await TheMealDBService().details(id: mealID) }
+        do { meal = try await TheMealDBService(baseURL: baseURL).details(id: mealID) }
         catch { self.error = error.localizedDescription }
         saved = savedRecipes.first { $0.source == "TheMealDB" && $0.sourceID == mealID }
         loading = false

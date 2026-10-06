@@ -3,6 +3,14 @@ import SwiftData
 
 @main
 struct CookingCompanionApp: App {
+    init() {
+        let preferences = UserDefaults.standard
+        if preferences.string(forKey: "serviceBaseURL") == nil,
+           let previousURL = preferences.string(forKey: "usdaBaseURL") {
+            preferences.set(previousURL, forKey: "serviceBaseURL")
+        }
+    }
+
     var sharedModelContainer: ModelContainer = {
         let schema = Schema([
             Recipe.self, RecipeIngredient.self, RecipeStep.self, Ingredient.self,
