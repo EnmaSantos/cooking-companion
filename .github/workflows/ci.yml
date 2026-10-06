@@ -30,7 +30,7 @@ jobs:
           xcodebuild test
           -project CookingCompanion.xcodeproj
           -scheme CookingCompanion
-          -destination 'platform=iOS Simulator,name=iPhone 16e,OS=latest'
+          -destination 'platform=iOS Simulator,name=iPhone 16 Pro,OS=latest'
           -derivedDataPath DerivedData
           CODE_SIGNING_ALLOWED=NO
       - name: Build Release simulator target
