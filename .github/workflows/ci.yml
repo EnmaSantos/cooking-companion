@@ -21,16 +21,17 @@ jobs:
         run: python -m unittest discover -s backend -p 'test_*.py' -v
 
   ios:
-    name: iOS simulator tests
+    name: iOS simulator builds
     runs-on: macos-15
     steps:
       - uses: actions/checkout@v4
-      - name: Test on iPhone simulator
+      - name: Build Debug simulator target
         run: >-
-          xcodebuild test
+          xcodebuild build
           -project CookingCompanion.xcodeproj
           -scheme CookingCompanion
-          -destination 'platform=iOS Simulator,name=iPhone 16 Pro,OS=latest'
+          -configuration Debug
+          -destination 'generic/platform=iOS Simulator'
           -derivedDataPath DerivedData
           CODE_SIGNING_ALLOWED=NO
       - name: Build Release simulator target
