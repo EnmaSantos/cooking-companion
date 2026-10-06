@@ -92,7 +92,7 @@ struct RecipesView: View {
 }
 
 struct DiscoverView: View {
-    @AppStorage("serviceBaseURL") private var baseURL = "http://127.0.0.1:8000"
+    @AppStorage("serviceBaseURL") private var baseURL = CatalogEndpoint.defaultBaseURL
     @State private var mode = 0
     @State private var query = ""
     @State private var ingredient = ""
@@ -153,7 +153,7 @@ struct DiscoverView: View {
 
 struct DiscoveredRecipeView: View {
     let mealID: String
-    @AppStorage("serviceBaseURL") private var baseURL = "http://127.0.0.1:8000"
+    @AppStorage("serviceBaseURL") private var baseURL = CatalogEndpoint.defaultBaseURL
     @Environment(\.modelContext) private var context
     @Query private var savedRecipes: [Recipe]
     @State private var meal: MealDTO?

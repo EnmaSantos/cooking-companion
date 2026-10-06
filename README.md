@@ -24,7 +24,7 @@ Saved recipes, pantry, shopping, and cooking continue to work when the internet 
 
 ## API keys and shared service
 
-The iPhone talks to one HTTPS service. That service calls TheMealDB V2 and USDA. **Both provider keys stay in the service environment, never in Swift source, the app's Settings, screenshots, or GitHub.** Users of the app only need its service URL.
+The iPhone talks to one HTTPS service at `https://cooking-companion-api-enmanuels-projects-5c99349f.vercel.app`. That service calls TheMealDB V2 and USDA. **Both provider keys stay in the service environment, never in Swift source, the app's Settings, screenshots, or GitHub.** New installations use the hosted service URL by default.
 
 | Environment | Where the two keys go | Used for |
 | --- | --- | --- |
@@ -59,11 +59,11 @@ Open `.env` in an editor and replace the placeholders with your two keys. If you
 .venv/bin/uvicorn app:app --host 0.0.0.0 --port 8000
 ```
 
-`.env` is ignored by Git. Restart the local service after changing either key. In Simulator, leave **Settings → API service URL** at `http://127.0.0.1:8000`. For local testing on a physical iPhone, enter your Mac's Wi-Fi address, such as `http://192.168.1.20:8000`, while the phone and Mac share a network. The local HTTP allowance exists only in the Debug app configuration.
+`.env` is ignored by Git. Restart the local service after changing either key. To use the local service in Simulator, change **Settings → API service URL** to `http://127.0.0.1:8000`. For local testing on a physical iPhone, enter your Mac's Wi-Fi address, such as `http://192.168.1.20:8000`, while the phone and Mac share a network. The local HTTP allowance exists only in the Debug app configuration.
 
 ### Hosting on Vercel
 
-The repository includes a root FastAPI entrypoint and requirements file for [Vercel's FastAPI runtime](https://vercel.com/docs/frameworks/backend/fastapi). Import this GitHub repository as a Vercel project with the repository root as its root directory. Before deploying, add `FOODDATA_API_KEY` and `THEMEALDB_API_KEY` as **Secret** variables for Production in **Project Settings → Environment Variables**. Deploy, then check `https://<your-deployment-domain>/health`: it returns HTTP 200 only when both keys are configured. Enter the deployment's base URL in **Settings → API service URL** on each test device. Update either key in Vercel's environment settings and redeploy; old deployments do not receive changed values. [Vercel environment-variable guide](https://vercel.com/docs/environment-variables/)
+The repository includes a root FastAPI entrypoint and requirements file for [Vercel's FastAPI runtime](https://vercel.com/docs/frameworks/backend/fastapi). The Vercel project is `cooking-companion-api`, linked to this repository at the repository root. Add `FOODDATA_API_KEY` and `THEMEALDB_API_KEY` as **Secret** variables for Production in **Project Settings → Environment Variables**. Deploy, then check the hosted `/health` endpoint: it returns HTTP 200 only when both keys are configured. New installations already use the production base URL; existing devices can set it in **Settings → API service URL**. Update either key in Vercel's environment settings and redeploy; old deployments do not receive changed values. [Vercel environment-variable guide](https://vercel.com/docs/environment-variables/)
 
 The service exposes `GET /recipes/search?q=…`, `/recipes/categories`, `/recipes/filter?category=…` or `?ingredient=…`, `/recipes/{mealId}`, `/foods/search?q=…&page=…`, and `/foods/{fdcId}`. It has no endpoint that accepts arbitrary provider URLs or returns credentials.
 

@@ -14,6 +14,8 @@ enum NetworkIssue: LocalizedError {
 }
 
 enum CatalogEndpoint {
+    static let defaultBaseURL = "https://cooking-companion-api-enmanuels-projects-5c99349f.vercel.app"
+
     static func url(base: String, path: String, query: [URLQueryItem] = []) throws -> URL {
         guard let root = URL(string: base), root.scheme == "http" || root.scheme == "https",
               let host = root.host, !host.isEmpty,

@@ -6,7 +6,7 @@ struct SettingsView: View {
     @Query private var recipes: [Recipe]
     @Query private var ingredients: [Ingredient]
     @Query private var pantry: [PantryItem]
-    @AppStorage("serviceBaseURL") private var baseURL = "http://127.0.0.1:8000"
+    @AppStorage("serviceBaseURL") private var baseURL = CatalogEndpoint.defaultBaseURL
     @State private var message: String?
     var body: some View {
         Form {

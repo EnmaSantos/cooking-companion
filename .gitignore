@@ -8,3 +8,4 @@ __pycache__/
 .venv/
 *.xcuserstate
 xcuserdata/
+.vercel
